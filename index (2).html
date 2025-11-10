@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test: ¿Qué tipo de gastador eres?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com  ">
+  <link rel="preconnect" href="https://fonts.gstatic.com  " crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1020;           /* fondo base (soporta claro/oscuro más abajo) */
+      --card: #10172a;
+      --muted: #c6cce2;
+      --text: #e9ecf8;
+      --primary: #7c9cff;      /* azul suave */
+      --primary-strong: #5a7bff;
+      --accent: #22c55e;       /* verde éxito */
+      --danger: #ef4444;
+      --ring: rgba(124,156,255,.45);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius-xl: 18px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --muted: #5a647d;
+        --text: #101423;
+        --shadow: 0 10px 30px rgba(16,20,35,.08);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(124,156,255,.25), transparent 60%),
+                  radial-gradient(900px 500px at -10% 10%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .header {
+      padding: 28px 28px 20px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(124,156,255,.18);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: .85rem;
+      letter-spacing: .3px;
+      margin-bottom: 10px;
+    }
+    .title {
+      margin: 0 0 6px 0;
+      font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+      font-weight: 800;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(124,156,255,.12);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* Progress */
+    .progress-wrap {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid rgba(124,156,255,.12);
+      background: linear-gradient(180deg, rgba(124,156,255,.09), transparent);
+    }
+    .progress-bar {
+      height: 10px;
+      background: rgba(124,156,255,.18);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-value {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-strong));
+      transition: width .35s ease;
+    }
+    .progress-label { color: var(--muted); font-weight: 600; font-size: .95rem; }
+
+    /* Step content */
+    .step {
+      display: none;
+      padding: 22px clamp(18px, 3.5vw, 28px) 28px;
+      animation: fade .35s ease;
+    }
+    .step.active { display: block; }
+
+    .q-title {
+      font-size: clamp(1.05rem, 2.6vw, 1.25rem);
+      font-weight: 700;
+      margin: 4px 0 14px;
+    }
+
+    /* Option tile */
+    .option {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px 14px 46px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.02));
+      border: 1px solid rgba(124,156,255,.16);
+      border-radius: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform .12s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      margin-bottom: 10px;
+    }
+    .option:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(124,156,255,.14);
+      border-color: rgba(124,156,255,.45);
+    }
+    .option input { position: absolute; opacity: 0; }
+
+    .checkmark {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px; border-radius: 999px;
+      border: 2px solid rgba(124,156,255,.65);
+      box-shadow: inset 0 0 0 4px var(--card);
+      transition: all .2s ease;
+    }
+    .option:has(input:checked) .checkmark {
+      border-color: var(--primary-strong);
+      box-shadow: inset 0 0 0 6.5px var(--primary);
+    }
+    .option:has(input:checked) {
+      background: linear-gradient(180deg, rgba(124,156,255,.15), rgba(124,156,255,.05));
+      border-color: var(--primary);
+    }
+
+    /* Nav buttons */
+    .nav {
+      display: flex;
+      gap: 10px;
+      padding: 18px;
+      border-top: 1px solid rgba(124,156,255,.12);
+      background: linear-gradient(0deg, rgba(124,156,255,.08), transparent);
+    }
+    .btn {
+      appearance: none;
+      border: none; cursor: pointer; font-weight: 700; letter-spacing: .2px;
+      padding: 12px 16px; border-radius: 12px;
+      background: #22283e; color: var(--text);
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(90deg, var(--primary), var(--primary-strong)); box-shadow: 0 8px 18px var(--ring); }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn-outline { background: transparent; border: 1px solid rgba(124,156,255,.35); }
+    .spacer { flex: 1; }
+
+    /* Results */
+    .results { display: none; }
+    .result-profile { display: none; }
+    .results.active { display: block; }
+
+    .result-wrap { padding: 26px; }
+    .result-title { font-size: clamp(1.4rem, 3vw, 1.8rem); margin: 0 0 8px; color: var(--primary); }
+    .result-tip {
+      font-size: 1rem; line-height: 1.7; margin-top: 14px;
+      background: linear-gradient(180deg, rgba(124,156,255,.15), rgba(124,156,255,.05));
+      border-left: 6px solid var(--primary);
+      padding: 14px 16px; border-radius: 0 12px 12px 0;
+    }
+
+    /* Utility */
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    /* Small screens */
+    @media (max-width: 520px) {
+      .nav { position: sticky; bottom: 12px; border-radius: 12px; backdrop-filter: blur(6px); }
+    }
+  .inline-error{display:block;color:var(--danger);font-size:.95rem;margin:8px 2px 0}
+  .score-breakdown { 
+    margin: 16px 0; 
+    padding: 16px; 
+    background: rgba(124,156,255,.1); 
+    border-radius: 12px; 
+    border-left: 4px solid var(--primary);
+  }
+  .score-item { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 4px 0; 
+    font-size: 0.95rem;
+  }
+  .score-label { font-weight: 600; }
+  .score-value { color: var(--primary); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header" aria-live="polite">
+      <div class="badge">Test interactivo</div>
+      <h1 class="title" id="main-title">¿Qué tipo de gastador eres?</h1>
+      <p class="subtitle" id="main-intro">Responde con lo primero que te venga a la mente. Es una pregunta por pantalla y puedes volver atrás.</p>
+    </header>
+
+    <section class="card" id="wizard">
+      <div class="progress-wrap" aria-hidden="false">
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progreso del test">
+          <div class="progress-value" id="progress"></div>
+        </div>
+        <div class="progress-label"><span id="stepLabel">Pregunta 1 de 5</span></div>
+      </div>
+
+      <!-- Steps container -->
+      <form id="quiz-form" novalidate>
+        <!-- STEP 1 -->
+        <div class="step active" data-step="1">
+          <p class="q-title">1. Es fin de quincena, te quedan 3 días para que te paguen y abres tu app del banco. ¿Cuál es la situación más común?</p>
+          <label class="option">
+            <input type="radio" name="q1" value="A" />
+            <span class="checkmark"></span>
+            “Uf... ¿en qué se me fue? Otra vez casi en ceros. Siento algo de culpa.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q1" value="B" />
+            <span class="checkmark"></span>
+            “¡Valió la pena! Fue una buena quincena. Ya veré cómo sobrevivo.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q1" value="C" />
+            <span class="checkmark"></span>
+            “Gasté un poco y me siento mal. Pude haber guardado ese dinero.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q1" value="D" />
+            <span class="checkmark"></span>
+            “Bien, pero... pude haber ahorrado más si no compraba esa ‘súper oferta’.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q1" value="E" />
+            <span class="checkmark"></span>
+            “Pues... normal. Todavía tengo dinero. No lo toqué mucho.”
+          </label>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step" data-step="2">
+          <p class="q-title">2. Tus amigos te invitan a un plan que se sale de tu presupuesto. ¿Tú qué haces?</p>
+          <label class="option">
+            <input type="radio" name="q2" value="A" />
+            <span class="checkmark"></span>
+            “Trato de ir, pero pido lo más barato. Me da pena decir que no puedo.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q2" value="B" />
+            <span class="checkmark"></span>
+            “Voy, obvio. La vida es corta. Ya después veo cómo sobrevivo.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q2" value="C" />
+            <span class="checkmark"></span>
+            “No voy. Me estresa demasiado gastar dinero no planeado.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q2" value="D" />
+            <span class="checkmark"></span>
+            “Propongo un plan más barato o busco cupones.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q2" value="E" />
+            <span class="checkmark"></span>
+            “No voy. No es por el dinero, prefiero no gastar.”
+          </label>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step" data-step="3">
+          <p class="q-title">3. ¿Qué opinas de los “gastos hormiga” (café, antojo, delivery)?</p>
+          <label class="option">
+            <input type="radio" name="q3" value="A" />
+            <span class="checkmark"></span>
+            “Son mi debilidad. Sé que ahí se va mi dinero, pero me cuesta dejarlos.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q3" value="B" />
+            <span class="checkmark"></span>
+            “¡Son sagrados! Pequeños lujos que me merezco.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q3" value="C" />
+            <span class="checkmark"></span>
+            “Los evito a toda costa. Prefiero guardar esos 30 pesos.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q3" value="D" />
+            <span class="checkmark"></span>
+            “Solo si hay buena promo. ¿2x1? ¡Claro!”
+          </label>
+          <label class="option">
+            <input type="radio" name="q3" value="E" />
+            <span class="checkmark"></span>
+            “Casi no tengo. Simplemente no se me antojan.”
+          </label>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step" data-step="4">
+          <p class="q-title">4. Cuando recibes tu dinero, ¿qué haces primero?</p>
+          <label class="option">
+            <input type="radio" name="q4" value="A" />
+            <span class="checkmark"></span>
+            “Pago fijos y lo demás ‘se va viendo’.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q4" value="B" />
+            <span class="checkmark"></span>
+            “Pienso en eso que quería comprar… y ¡zas!”
+          </label>
+          <label class="option">
+            <input type="radio" name="q4" value="C" />
+            <span class="checkmark"></span>
+            “Separo para ahorrar y me da ansiedad gastar lo que queda.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q4" value="D" />
+            <span class="checkmark"></span>
+            “Reviso apps para ver qué ofertas hay.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q4" value="E" />
+            <span class="checkmark"></span>
+            “Me llega y… ahí se queda. No le hago nada.”
+          </label>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step" data-step="5">
+          <p class="q-title">5. Si tu dinero hablara, diría que lo tratas con…</p>
+          <label class="option">
+            <input type="radio" name="q5" value="A" />
+            <span class="checkmark"></span>
+            “Culpa. Me gastas y luego te arrepientes.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q5" value="B" />
+            <span class="checkmark"></span>
+            “Impulsividad. Apenas llego y ya me estás gastando.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q5" value="C" />
+            <span class="checkmark"></span>
+            “Ansiedad. Siempre me estás contando y guardando con miedo.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q5" value="D" />
+            <span class="checkmark"></span>
+            “Inteligencia. Buscas estirarme con descuentos.”
+          </label>
+          <label class="option">
+            <input type="radio" name="q5" value="E" />
+            <span class="checkmark"></span>
+            “Aburrimiento. Me tienes guardado y no haces nada conmigo.”
+          </label>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+          <button type="button" class="btn btn-outline" id="prevBtn">Anterior</button>
+          <div class="spacer"></div>
+                    <button type="button" class="btn btn-primary" id="nextBtn">Siguiente</button>
+        </div>
+      </form>
+
+      <!-- Results screen -->
+      <section id="results" class="results">
+        <div class="result-wrap">
+          <h2 class="result-title">Tu resultado</h2>
+          <p class="subtitle" id="result-sub">Según tus respuestas, este es tu perfil:</p>
+          
+          <!-- Contador de respuestas -->
+          <div id="score-breakdown" class="score-breakdown" style="display:none;">
+            <h3>Desglose de respuestas:</h3>
+            <div class="score-item"><span class="score-label">A (Planificador Frustrado):</span> <span class="score-value" id="count-A">0</span></div>
+            <div class="score-item"><span class="score-label">B (Impulsivo):</span> <span class="score-value" id="count-B">0</span></div>
+            <div class="score-item"><span class="score-label">C (Ahorrador Ansioso):</span> <span class="score-value" id="count-C">0</span></div>
+            <div class="score-item"><span class="score-label">D (Cazador Descontrolado):</span> <span class="score-value" id="count-D">0</span></div>
+            <div class="score-item"><span class="score-label">E (Ahorrador Inercial):</span> <span class="score-value" id="count-E">0</span></div>
+          </div>
+          
+          <div id="results-container">
+            <article id="result-A" class="result-profile">
+              <h3 class="result-title">Mayoría A: El Planificador Frustrado</h3>
+              <p>¡Tienes buenas intenciones! Te gusta la idea de ahorrar y sabes que deberías hacerlo, pero los gastos del día a día te ganan. Tu mayor reto son los "gastos hormiga" y la presión social. Sueles sentir culpa después de gastar.</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> Ponerle un alto a esos gastos fantasma (Módulo 3) y a crear un presupuesto que sí puedas cumplir sin sentirte mal (Módulo 2).</div>
+            </article>
+            <article id="result-B" class="result-profile">
+              <h3 class="result-title">Mayoría B: El Impulsivo</h3>
+              <p>Para ti, el dinero es para disfrutarse... ¡hoy! Vives el momento al máximo. El problema es el estrés que llega a fin de mes cuando abres la app del banco y te preguntas "¿en qué se me fue todo?".</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> Encontrar el balance. Seguirás disfrutando, pero con un plan que te dé tranquilidad (Módulo 2) y te permita ahorrar para sueños más grandes (Módulo 4).</div>
+            </article>
+            <article id="result-C" class="result-profile">
+              <h3 class="result-title">Mayoría C: El Ahorrador Ansioso</h3>
+              <p>Eres excelente para guardar dinero. El problema es que te da miedo gastarlo. Vives con ansiedad financiera y te culpas por cada pequeña compra, incluso si es algo que necesitas o que te hace feliz.</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> ¡Gastar sin culpa! Aprenderás a ponerle nombre y apellido a tu ahorro (Módulo 4: Metas) y a crear un presupuesto que te dé permiso para gastar en lo que te importa.</div>
+            </article>
+            <article id="result-D" class="result-profile">
+              <h3 class="result-title">Mayoría D: El Cazador (Des)controlado</h3>
+              <p>Eres un máster de las ofertas, cupones y meses sin intereses. ¡Nadie te gana encontrando un deal! El riesgo es que a veces gastas de más, no porque necesitaras algo, sino porque "era una gran oportunidad".</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> Diferenciar un "buen gasto" de una "buena oferta". Aprenderás a alinear tus compras con tus metas (Módulo 4), no solo con los descuentos.</div>
+            </article>
+            <article id="result-E" class="result-profile">
+              <h3 class="result-title">Mayoría E: El Ahorrador Inercial</h3>
+              <p>Tú ahorras, y mucho. No te cuesta trabajo no gastar. El dinero simplemente se acumula en tu cuenta... y ya. El problema es que no sabes para qué estás ahorrando. No tienes un plan, metas, ni sabes qué hacer con ese dinero.</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> ¡Darle un propósito a ese ahorro! Aprenderás a ponerle metas claras (Módulo 4) y a crear un presupuesto que haga que ese dinero trabaje para ti (Módulo 2).</div>
+            </article>
+            
+            <!-- Artículo para empates -->
+            <article id="result-tie" class="result-profile">
+              <h3 class="result-title">Perfil Mixto</h3>
+              <p id="tie-description">Tu perfil muestra características de varios tipos de gastador. Esto es completamente normal y puede reflejar que tu comportamiento financiero varía según la situación o que estás en un proceso de cambio.</p>
+              <div class="result-tip"><strong>Este curso te ayudará a:</strong> Entender mejor tus patrones financieros y desarrollar una relación más equilibrada con el dinero.</div>
+            </article>
+          </div>
+
+          <div class="nav">
+            <button type="button" class="btn btn-outline" id="restartBtn">Repetir test</button>
+            <div class="spacer"></div>
+                                  </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+  (function() {
+    const total = 5; let step = 1;
+
+    const form = document.getElementById('quiz-form');
+    const steps = Array.from(document.querySelectorAll('.step'));
+    const progress = document.getElementById('progress');
+    const stepLabel = document.getElementById('stepLabel');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const resultsScreen = document.getElementById('results');
+    const resultsContainer = document.getElementById('results-container');
+    const restartBtn = document.getElementById('restartBtn');
+
+    const updateProgress = () => {
+      const pct = Math.round(((step - 1) / total) * 100);
+      progress.style.width = pct + '%';
+      document.querySelector('.progress-bar').setAttribute('aria-valuenow', String(pct));
+      stepLabel.textContent = (step <= total) ? `Pregunta ${step} de ${total}` : 'Resultados';
+      nextBtn.textContent = step === total ? 'Ver resultado' : 'Siguiente';
+      prevBtn.disabled = step === 1;
+    };
+
+    const goTo = (n) => {
+      steps.forEach(s => s.classList.remove('active'));
+      const target = steps[n - 1];
+      if (target) target.classList.add('active');
+      step = n; updateProgress(); autoDisableNext(); window.scrollTo({top:0,behavior:'smooth'});
+    };
+
+    const currentInput = () => steps[step-1]?.querySelector('input[type="radio"]:checked');
+
+    const ensureError = (container) => {
+      let err = container.querySelector('.inline-error');
+      if (!err) {
+        err = document.createElement('p');
+        err.className = 'inline-error';
+        err.setAttribute('role','alert');
+        err.textContent = 'Por favor, elige una respuesta para continuar.';
+        container.appendChild(err);
+      }
+      return err;
+    };
+
+    const showErrorIfNeeded = () => {
+      const stepEl = steps[step-1];
+      if (!stepEl) return;
+      const selected = currentInput();
+      const existing = stepEl.querySelector('.inline-error');
+      if (!selected) {
+        const err = ensureError(stepEl);
+        err.style.display = 'block';
+        nextBtn.disabled = true;
+      } else if (existing) {
+        existing.style.display = 'none';
+      }
+    };
+
+    const autoDisableNext = () => {
+      nextBtn.disabled = !currentInput();
+      showErrorIfNeeded();
+    };
+
+    form.addEventListener('change', (e) => {
+      if (e.target.matches('input[type="radio"]')) autoDisableNext();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      // Validar que todas las preguntas anteriores estén respondidas antes de avanzar
+      if (step < total) {
+        for (let i = 1; i <= step; i++) {
+          const inputs = steps[i-1].querySelectorAll('input[type="radio"]');
+          const checked = Array.from(inputs).some(input => input.checked);
+          if (!checked) {
+            showErrorIfNeeded();
+            return;
+          }
+        }
+        goTo(step + 1);
+      } else {
+        // Al llegar al final, validar que la última pregunta esté respondida
+        if (!currentInput()) {
+          showErrorIfNeeded();
+          return;
+        }
+        showResults();
+      }
+    });
+
+    prevBtn.addEventListener('click', () => { if (step > 1) goTo(step - 1); });
+
+    const computeProfile = () => {
+      const scores = { A:0, B:0, C:0, D:0, E:0 };
+      for (let i = 1; i <= total; i++) {
+        const sel = new FormData(form).get('q'+i);
+        if (sel && scores.hasOwnProperty(sel)) scores[sel]++;
+      }
+      // Actualizar contadores en pantalla
+      for (const key in scores) {
+        const countElement = document.getElementById('count-' + key);
+        if (countElement) countElement.textContent = scores[key];
+      }
+      // Mostrar el desglose
+      document.getElementById('score-breakdown').style.display = 'block';
+      
+      // Encontrar el máximo y posibles empates
+      let maxScore = -1;
+      let winners = [];
+      for (const k in scores) { 
+        if (scores[k] > maxScore) {
+          maxScore = scores[k];
+          winners = [k];
+        } else if (scores[k] === maxScore && scores[k] > 0) {
+          winners.push(k);
+        }
+      }
+      
+      // Si hay empate, devolver los ganadores como cadena
+      if (winners.length > 1) {
+        return { type: 'tie', winners: winners, scores: scores };
+      }
+      return { type: 'single', winner: winners[0], scores: scores };
+    };
+
+    const firstMissing = () => {
+      for (let i=1;i<=total;i++) { 
+        if (!new FormData(form).get('q'+i)) return i; 
+      }
+      return null;
+    };
+
+    const showResults = () => {
+      const missing = firstMissing();
+      if (missing) { goTo(missing); showErrorIfNeeded(); return; }
+
+      const result = computeProfile();
+      form.style.display = 'none';
+      document.querySelector('.progress-wrap').style.display = 'none';
+      resultsScreen.classList.add('active');
+
+      // Ocultar todos los perfiles
+      Array.from(resultsContainer.querySelectorAll('.result-profile')).forEach(el => el.style.display = 'none');
+      
+      if (result.type === 'single') {
+        // Mostrar perfil único
+        const chosen = document.getElementById('result-' + result.winner);
+        if (chosen) chosen.style.display = 'block';
+      } else {
+        // Mostrar perfil de empate
+        const tieProfile = document.getElementById('result-tie');
+        if (tieProfile) {
+          // Actualizar descripción del empate
+          const desc = document.getElementById('tie-description');
+          if (desc) {
+            desc.innerHTML = `Tu perfil muestra características de los tipos: ` + 
+                            result.winners.map(w => {
+                              switch(w) {
+                                case 'A': return '<strong>El Planificador Frustrado</strong>';
+                                case 'B': return '<strong>El Impulsivo</strong>';
+                                case 'C': return '<strong>El Ahorrador Ansioso</strong>';
+                                case 'D': return '<strong>El Cazador Descontrolado</strong>';
+                                case 'E': return '<strong>El Ahorrador Inercial</strong>';
+                                default: return w;
+                              }
+                            }).join(' y ') + 
+                            `. Esto es completamente normal y puede reflejar que tu comportamiento financiero varía según la situación o que estás en un proceso de cambio.`;
+          }
+          tieProfile.style.display = 'block';
+        }
+      }
+
+      document.getElementById('main-title').textContent = 'Tu Resultado';
+      document.getElementById('main-intro').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    restartBtn.addEventListener('click', () => {
+      form.reset(); form.style.display='';
+      document.querySelector('.progress-wrap').style.display='';
+      resultsScreen.classList.remove('active');
+      document.getElementById('main-title').textContent = '¿Qué tipo de gastador eres?';
+      document.getElementById('main-intro').style.display = '';
+      document.getElementById('score-breakdown').style.display = 'none';
+      goTo(1);
+    });
+
+    // Init
+    updateProgress(); autoDisableNext();
+  })();
+</script>
+</body>
+</html>
